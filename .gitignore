@@ -1,0 +1,29 @@
+# Build output
+target/
+dist/
+out-tsc/
+
+# Dependencies
+node_modules/
+
+# Angular cache
+.angular/
+
+# IDE / editor
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.classpath
+.project
+.settings/
+
+# Logs
+*.log
+npm-debug.log
+yarn-error.log
+
+# System files
+.DS_Store
+Thumbs.db

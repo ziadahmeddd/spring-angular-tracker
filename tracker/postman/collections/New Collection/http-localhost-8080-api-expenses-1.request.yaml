@@ -1,0 +1,17 @@
+$kind: http-request
+name: http://localhost:8080/api/expenses
+description: ""
+url: http://localhost:8080/api/expenses
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"title\": \"Gym Membership\",\r
+
+    \  \"amount\": 35.00,\r
+
+    \  \"category\": \"MISCELLANEOUS\"\r
+
+    }"
+order: 2000

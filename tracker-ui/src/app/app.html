@@ -1,0 +1,96 @@
+<main class="container">
+  <header>
+    <h1>Expense Tracker</h1>
+    <p class="subtitle">Spring Boot 3 + Angular Architecture</p>
+  </header>
+
+  <!-- Create Form Section -->
+  <section class="card">
+    <h2>Record Expense</h2>
+    <form (ngSubmit)="onSubmit()" #expenseForm="ngForm">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input 
+            type="text" 
+            id="title" 
+            name="title" 
+            [(ngModel)]="newExpense.title" 
+            placeholder="e.g. Supermarket run" 
+            required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="amount">Amount ($)</label>
+          <input 
+            type="number" 
+            id="amount" 
+            name="amount" 
+            step="0.01" 
+            [(ngModel)]="newExpense.amount" 
+            placeholder="0.00" 
+            required 
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" [(ngModel)]="newExpense.category">
+            <option *ngFor="let cat of categories" [value]="cat">
+              {{ cat }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <button type="submit" class="btn primary">Add Record</button>
+    </form>
+  </section>
+
+  <!-- Expenses Table Section -->
+  <section class="card">
+    <h2>Saved Records</h2>
+
+    <div *ngIf="isLoading()" class="status-msg">
+      Fetching records from Spring Boot...
+    </div>
+
+    <div *ngIf="errorMessage()" class="status-msg error">
+      {{ errorMessage() }}
+    </div>
+
+    <div class="table-container" *ngIf="!isLoading() && expenses().length > 0">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Amount</th>
+            <th>Logged At</th>
+            <th class="actions-col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of expenses()">
+            <td>{{ item.id }}</td>
+            <td class="font-medium">{{ item.title }}</td>
+            <td>
+              <span class="badge">{{ item.category }}</span>
+            </td>
+            <td>${{ item.amount.toFixed(2) }}</td>
+            <td>{{ item.createdAt | date:'mediumDate' }}</td>
+            <td class="actions-col">
+              <button class="btn danger" (click)="onDelete(item.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!isLoading() && expenses().length === 0 && !errorMessage()" class="status-msg empty">
+      No expense records found. Submit one using the form above.
+    </div>
+  </section>
+</main>
