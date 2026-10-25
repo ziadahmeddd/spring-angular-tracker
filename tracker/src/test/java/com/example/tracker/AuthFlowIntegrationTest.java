@@ -126,6 +126,14 @@ class AuthFlowIntegrationTest {
                .andExpect(jsonPath("$.totalElements").value(0));
     }
 
+    @Test
+    void reportsMalformedJsonAsBadRequestNotServerError() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                   .contentType(MediaType.APPLICATION_JSON)
+                   .content("{not valid json"))
+               .andExpect(status().isBadRequest());
+    }
+
     private org.springframework.test.web.servlet.ResultActions register(String email, String password)
             throws Exception {
         return mockMvc.perform(post("/api/auth/register")
