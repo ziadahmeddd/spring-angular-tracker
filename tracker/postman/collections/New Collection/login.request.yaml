@@ -1,0 +1,31 @@
+$kind: http-request
+name: login
+method: POST
+url: '{{baseUrl}}/api/auth/login'
+order: 200
+auth:
+  type: noauth
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "email": "{{email}}",
+      "password": "{{password}}"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test('login returns 200', function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test('response carries a three-segment JWT', function () {
+        pm.expect(pm.response.json().token.split('.')).to.have.lengthOf(3);
+      });
+
+      // Collection-level auth reads {{token}}, so every later request is signed in.
+      pm.collectionVariables.set('token', pm.response.json().token);

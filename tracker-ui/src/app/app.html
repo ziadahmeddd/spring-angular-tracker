@@ -1,96 +1,170 @@
 <main class="container">
   <header>
     <h1>Expense Tracker</h1>
-    <p class="subtitle">Spring Boot 3 + Angular Architecture</p>
+    <p class="subtitle">Spring Boot + Angular Architecture</p>
+
+    @if (auth.isAuthenticated()) {
+      <div class="session">
+        <span class="session-email">{{ auth.email() }}</span>
+        <button type="button" class="btn" (click)="onLogout()">Sign Out</button>
+      </div>
+    }
   </header>
 
-  <!-- Create Form Section -->
-  <section class="card">
-    <h2>Record Expense</h2>
-    <form (ngSubmit)="onSubmit()" #expenseForm="ngForm">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="title">Title</label>
-          <input 
-            type="text" 
-            id="title" 
-            name="title" 
-            [(ngModel)]="newExpense.title" 
-            placeholder="e.g. Supermarket run" 
-            required 
-          />
+  @if (!auth.isAuthenticated()) {
+    <!-- Auth Section -->
+    <section class="card">
+      <h2>{{ authHeading() }}</h2>
+
+      <form [formGroup]="authForm" (ngSubmit)="onAuthSubmit()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="auth-email">Email</label>
+            <input
+              type="email"
+              id="auth-email"
+              formControlName="email"
+              autocomplete="username"
+              placeholder="you@example.com"
+              [attr.aria-invalid]="authForm.controls.email.touched && authForm.controls.email.invalid"
+              [attr.aria-describedby]="authForm.controls.email.touched && authForm.controls.email.invalid ? 'auth-email-error' : null"
+            />
+            @if (authForm.controls.email.touched && authForm.controls.email.invalid) {
+              <p class="field-error" id="auth-email-error">Enter a valid email address.</p>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="auth-password">Password</label>
+            <input
+              type="password"
+              id="auth-password"
+              formControlName="password"
+              [autocomplete]="authMode() === 'login' ? 'current-password' : 'new-password'"
+              placeholder="At least 8 characters"
+              [attr.aria-invalid]="authForm.controls.password.touched && authForm.controls.password.invalid"
+              [attr.aria-describedby]="authForm.controls.password.touched && authForm.controls.password.invalid ? 'auth-password-error' : null"
+            />
+            @if (authForm.controls.password.touched && authForm.controls.password.invalid) {
+              <p class="field-error" id="auth-password-error">Password must be at least 8 characters.</p>
+            }
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="amount">Amount ($)</label>
-          <input 
-            type="number" 
-            id="amount" 
-            name="amount" 
-            step="0.01" 
-            [(ngModel)]="newExpense.amount" 
-            placeholder="0.00" 
-            required 
-          />
+        @if (authError()) {
+          <div class="status-msg error" role="alert">{{ authError() }}</div>
+        }
+
+        <button type="submit" class="btn primary" [disabled]="isSubmittingAuth()">
+          {{ isSubmittingAuth() ? 'Working...' : authHeading() }}
+        </button>
+      </form>
+
+      <p class="switch-mode">
+        @if (authMode() === 'login') {
+          <span>No account yet?</span>
+          <button type="button" class="btn link" (click)="switchMode('register')">Create one</button>
+        } @else {
+          <span>Already registered?</span>
+          <button type="button" class="btn link" (click)="switchMode('login')">Sign in</button>
+        }
+      </p>
+    </section>
+  } @else {
+    <!-- Create Form Section -->
+    <section class="card">
+      <h2>Record Expense</h2>
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="title">Title</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              [(ngModel)]="newExpense.title"
+              placeholder="e.g. Supermarket run"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="amount">Amount ($)</label>
+            <input
+              type="number"
+              id="amount"
+              name="amount"
+              step="0.01"
+              [(ngModel)]="newExpense.amount"
+              placeholder="0.00"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category" name="category" [(ngModel)]="newExpense.category">
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="category">Category</label>
-          <select id="category" name="category" [(ngModel)]="newExpense.category">
-            <option *ngFor="let cat of categories" [value]="cat">
-              {{ cat }}
-            </option>
-          </select>
+        <button type="submit" class="btn primary">Add Record</button>
+      </form>
+    </section>
+
+    <!-- Expenses Table Section -->
+    <section class="card">
+      <h2>Saved Records</h2>
+
+      @if (isLoading()) {
+        <div class="status-msg">Fetching records from Spring Boot...</div>
+      }
+
+      @if (errorMessage()) {
+        <div class="status-msg error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      @if (!isLoading() && expenses().length > 0) {
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Amount</th>
+                <th>Logged At</th>
+                <th class="actions-col">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of expenses(); track item.id) {
+                <tr>
+                  <td>{{ item.id }}</td>
+                  <td class="font-medium">{{ item.title }}</td>
+                  <td>
+                    <span class="badge">{{ item.category }}</span>
+                  </td>
+                  <td>${{ item.amount.toFixed(2) }}</td>
+                  <td>{{ item.createdAt | date:'mediumDate' }}</td>
+                  <td class="actions-col">
+                    <button class="btn danger" (click)="onDelete(item.id)">Delete</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
-      </div>
+      }
 
-      <button type="submit" class="btn primary">Add Record</button>
-    </form>
-  </section>
-
-  <!-- Expenses Table Section -->
-  <section class="card">
-    <h2>Saved Records</h2>
-
-    <div *ngIf="isLoading()" class="status-msg">
-      Fetching records from Spring Boot...
-    </div>
-
-    <div *ngIf="errorMessage()" class="status-msg error">
-      {{ errorMessage() }}
-    </div>
-
-    <div class="table-container" *ngIf="!isLoading() && expenses().length > 0">
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Amount</th>
-            <th>Logged At</th>
-            <th class="actions-col">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of expenses()">
-            <td>{{ item.id }}</td>
-            <td class="font-medium">{{ item.title }}</td>
-            <td>
-              <span class="badge">{{ item.category }}</span>
-            </td>
-            <td>${{ item.amount.toFixed(2) }}</td>
-            <td>{{ item.createdAt | date:'mediumDate' }}</td>
-            <td class="actions-col">
-              <button class="btn danger" (click)="onDelete(item.id)">Delete</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div *ngIf="!isLoading() && expenses().length === 0 && !errorMessage()" class="status-msg empty">
-      No expense records found. Submit one using the form above.
-    </div>
-  </section>
+      @if (!isLoading() && expenses().length === 0 && !errorMessage()) {
+        <div class="status-msg empty">
+          No expense records found. Submit one using the form above.
+        </div>
+      }
+    </section>
+  }
 </main>

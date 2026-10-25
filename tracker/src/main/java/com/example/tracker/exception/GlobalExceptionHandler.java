@@ -2,6 +2,8 @@ package com.example.tracker.exception;
 
 import com.example.tracker.dto.ApiErrorResponse;
 import com.example.tracker.dto.ValidationErrorResponse;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +59,43 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    // 3. Fallback for unhandled server exceptions (500 Internal Server Error)
+    // 3. Email collision on registration (409 Conflict)
+    @ExceptionHandler(EmailAlreadyUsedException.class)
+    public ResponseEntity<ApiErrorResponse> handleEmailAlreadyUsedException(
+            EmailAlreadyUsedException ex,
+            HttpServletRequest request) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+            Instant.now(),
+            HttpStatus.CONFLICT.value(),
+            "Email Already Used",
+            ex.getMessage(),
+            request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    // 4. Failed login (401 Unauthorized).
+    // The message is deliberately identical for an unknown email and a wrong
+    // password, so the response cannot be used to enumerate accounts.
+    @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
+    public ResponseEntity<ApiErrorResponse> handleAuthenticationException(
+            AuthenticationException ex,
+            HttpServletRequest request) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+            Instant.now(),
+            HttpStatus.UNAUTHORIZED.value(),
+            "Unauthorized",
+            "Invalid email or password",
+            request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    // 5. Fallback for unhandled server exceptions (500 Internal Server Error)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneralException(
             Exception ex,

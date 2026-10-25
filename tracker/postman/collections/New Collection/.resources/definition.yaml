@@ -1,1 +1,26 @@
 $kind: collection
+description: |-
+  Expense Tracker API. Every /api/expenses request needs a JWT, so run
+  "login" first: its post-response script stores the token in the {{token}}
+  collection variable, which collection-level auth then sends on every
+  other request.
+variables:
+  - key: baseUrl
+    value: http://localhost:8080
+    description: Backend origin. Override per environment.
+  - key: token
+    value: ""
+    description: Filled in by the login request's post-response script.
+  - key: email
+    value: alice@example.com
+    description: Account used by the register and login requests.
+  - key: password
+    value: ""
+    description: >-
+      Left empty on purpose so no password is committed. Set it locally as a
+      secret variable in your environment before running these requests.
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{token}}'

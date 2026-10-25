@@ -13,6 +13,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,8 +28,10 @@ public class ExpenseController {
     }
 
     @PostMapping
-    public ResponseEntity<ExpenseResponse> createExpense(@Valid @RequestBody CreateExpenseRequest request) {
-        ExpenseResponse response = expenseService.createExpense(request);
+    public ResponseEntity<ExpenseResponse> createExpense(
+            @Valid @RequestBody CreateExpenseRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        ExpenseResponse response = expenseService.createExpense(request, principal.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -36,28 +40,35 @@ public class ExpenseController {
             @RequestParam(required = false) Category category,
             @PageableDefault(page = 0, size = 10)
             @SortDefault(sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
-        PagedResponse<ExpenseResponse> expenses = expenseService.getAllExpenses(category, pageable);
+            Pageable pageable,
+            @AuthenticationPrincipal UserDetails principal) {
+        PagedResponse<ExpenseResponse> expenses =
+                expenseService.getAllExpenses(category, pageable, principal.getUsername());
         return ResponseEntity.ok(expenses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ExpenseResponse> getExpenseById(@PathVariable Long id) {
-        ExpenseResponse expense = expenseService.getExpenseById(id);
+    public ResponseEntity<ExpenseResponse> getExpenseById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails principal) {
+        ExpenseResponse expense = expenseService.getExpenseById(id, principal.getUsername());
         return ResponseEntity.ok(expense);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ExpenseResponse> updateExpense(
             @PathVariable Long id,
-            @Valid @RequestBody UpdateExpenseRequest request) {
-        ExpenseResponse updated = expenseService.updateExpense(id, request);
+            @Valid @RequestBody UpdateExpenseRequest request,
+            @AuthenticationPrincipal UserDetails principal) {
+        ExpenseResponse updated = expenseService.updateExpense(id, request, principal.getUsername());
         return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable Long id) {
-        expenseService.deleteExpense(id);
+    public ResponseEntity<Void> deleteExpense(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails principal) {
+        expenseService.deleteExpense(id, principal.getUsername());
         return ResponseEntity.noContent().build();
     }
 }

@@ -164,3 +164,50 @@
   .status-msg.empty {
     color: #94a3b8;
   }
+/* Session bar */
+.session {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.session-email {
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+/* Auth form */
+.field-error {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #b91c1c;
+}
+
+.switch-mode {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.btn.link {
+  padding: 0;
+  background: none;
+  border: none;
+  color: #1d4ed8;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.btn.link:hover {
+  color: #15329c;
+}
+
+input[aria-invalid='true'] {
+  border-color: #b91c1c;
+}

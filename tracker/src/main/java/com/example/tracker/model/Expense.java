@@ -22,6 +22,10 @@ public class Expense {
     @Column(nullable = false, length = 30)
     private Category category;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "owner_id", nullable = false, updatable = false)
+    private User owner;
+
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -29,10 +33,11 @@ public class Expense {
     protected Expense() {
     }
 
-    public Expense(String title, BigDecimal amount, Category category) {
+    public Expense(String title, BigDecimal amount, Category category, User owner) {
         this.title = title;
         this.amount = amount;
         this.category = category;
+        this.owner = owner;
         this.createdAt = Instant.now();
     }
 
@@ -70,6 +75,10 @@ public class Expense {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+
+    public User getOwner() {
+        return owner;
     }
 
     public Instant getCreatedAt() {

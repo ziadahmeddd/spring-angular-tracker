@@ -1,0 +1,15 @@
+$kind: http-request
+name: expenses (no token, expect 401)
+method: GET
+url: '{{baseUrl}}/api/expenses'
+order: 300
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      // Negative check: proves the security chain is actually enforcing auth.
+      pm.test('rejects an unauthenticated caller', function () {
+        pm.response.to.have.status(401);
+      });
